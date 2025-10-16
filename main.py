@@ -1,5 +1,6 @@
 import re
 import os
+import csv
 import json
 import requests
 from urllib.parse import urlparse
@@ -89,7 +90,7 @@ def download_tiktok(url: str, rapidapi_key: str, base_dir: str = "./downloads"):
 # -----------------------------
 
 def download_youtube(url: str, base_dir: str = "./downloads"):
-    exclude_fields = ['formats', 'automatic_captions', 'heatmap', 'http_headers', 'vbr', 'abr', 'vcodec', 'acodec']
+    exclude_fields = ['formats', 'automatic_captions', 'heatmap', 'http_headers', 'vbr', 'thumbnails',  'abr', 'vcodec', 'acodec']
 
     with YoutubeDL({}) as ydl:
         info = ydl.extract_info(url, download=False)
@@ -208,8 +209,23 @@ def download_video(url: str):
 # -----------------------------
 
 if __name__ == "__main__":
-    url = input("Enter TikTok / Instagram / YouTube URL: ").strip()
+    csv_file = "WHATSAPP_AI_Video_Library_2025-10-12.csv"
+
     try:
-        download_video(url)
+        with open(csv_file, newline='', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for row_num, row in enumerate(reader, start=1):
+                try:
+                    # Column D means index 3 (0-based indexing)
+                    url = row[3].strip()
+                    if url:
+                        download_video(url)
+                    else:
+                        print(f"⚠️ Row {row_num}: Empty URL, skipping.")
+                except IndexError:
+                    print(f"⚠️ Row {row_num}: Missing column D, skipping.")
+                except Exception as e:
+                    print(f"❌ Row {row_num}: Error downloading video: {e}")
+
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error opening file: {e}")
